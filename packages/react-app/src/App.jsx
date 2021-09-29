@@ -24,6 +24,8 @@ import { useExchangeEthPrice } from "eth-hooks/dapps/dex";
 // import Hints from "./Hints";
 import { ExampleUI, Hints, Subgraph } from "./views";
 
+import Hero from "./components/Hero";
+import Pools from "./components/Pools";
 import Farming from "./components/Farming";
 
 import { useContractConfig } from "./hooks";
@@ -444,19 +446,24 @@ function App(props) {
   }
 
   return (
-    <div className="App">
-      <ChakraProvider>
-        {/* <Header /> */}
-        <BrowserRouter>
-          <Switch>
-            <Route exact path="/"></Route>
-            <Route path="/farming">
+    <ChakraProvider>
+      {/* <Header /> */}
+      <BrowserRouter>
+        <Switch>
+          <Route exact path="/">
+            <Hero />
+          </Route>
+          <div className="App">
+            <Route exact path="/pools">
+              <Pools />
+            </Route>
+            <Route exact path="/farming">
               <Farming block={mainnetProvider._lastBlockNumber} />
             </Route>
-          </Switch>
-        </BrowserRouter>
-      </ChakraProvider>
-    </div>
+          </div>
+        </Switch>
+      </BrowserRouter>
+    </ChakraProvider>
   );
 }
 
