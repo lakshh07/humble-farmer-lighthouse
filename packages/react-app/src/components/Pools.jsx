@@ -1,10 +1,9 @@
 import React from "react";
 import { Box, Flex, Heading, Text, Image, Grid } from "@chakra-ui/react";
 import farms from "../utils/PoolsMockData";
-import "../utils/Utils.js";
+import { Link } from "react-router-dom";
 
 function Pools({}) {
-  function handleChange(value) {}
   return (
     <>
       <Box mt="2.2rem" mx="3.5rem" overflow="hidden">
@@ -12,7 +11,7 @@ function Pools({}) {
           Investment Farms
         </Heading>
         <Flex flexDirection="column" alignItems="center" mt="4rem">
-          <Box cursor="pointer" mb="1rem" px="2rem" w="100%">
+          <Box mb="1rem" px="2rem" w="100%">
             <Grid
               color="#fff"
               fontSize="14px"
@@ -34,28 +33,30 @@ function Pools({}) {
             {farms.map((list, index) => {
               return (
                 <Box className="boxx" w="100%" key={index}>
-                  <Box cursor="pointer" className="box" p="1.5rem" justifyContent="baseline">
-                    <Grid
-                      color="#fff"
-                      fontFamily="Raleway"
-                      fontWeight="400"
-                      fontSize="17px"
-                      templateColumns="repeat(5, 1fr)"
-                      mx="5vw"
-                      gap="4rem"
-                      alignItems="center"
-                      w="100%"
-                    >
-                      <Flex align="center">
-                        <Image src={list.logo} boxSize="22px" />
-                        <Text ml="0.5rem">{list.provider}</Text>
-                      </Flex>
-                      <Text>{list.assets}</Text>
-                      <Text>{list.poolValue}</Text>
-                      <Text>{list.volume}</Text>
-                      <Text>{list.apr}</Text>
-                    </Grid>
-                  </Box>
+                  <Link to={`/pools/${list.provider}`}>
+                    <Box cursor="pointer" className="box" p="1.5rem" justifyContent="baseline">
+                      <Grid
+                        color="#fff"
+                        fontFamily="Raleway"
+                        fontWeight="400"
+                        fontSize="17px"
+                        templateColumns="repeat(5, 1fr)"
+                        mx="5vw"
+                        gap="4rem"
+                        alignItems="center"
+                        w="100%"
+                      >
+                        <Flex align="center">
+                          <Image src={list.logo} boxSize="22px" />
+                          <Text ml="0.5rem">{list.provider}</Text>
+                        </Flex>
+                        <Text>{list.assets}</Text>
+                        <Text>{list.poolValue}</Text>
+                        <Text>{list.volume}</Text>
+                        <Text>{list.apr}</Text>
+                      </Grid>
+                    </Box>
+                  </Link>
                 </Box>
               );
             })}

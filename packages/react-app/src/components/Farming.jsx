@@ -1,203 +1,158 @@
 import React, { useState, useEffect } from "react";
 import { Box, Flex, Grid, Button, Heading, Text, Stack } from "@chakra-ui/react";
-import ReactApexChart from "react-apexcharts";
-import ApexCharts from "apexcharts";
+import Chart from "react-apexcharts";
 import axios from "axios";
 
 function Farming({ block }) {
-  const [EthCandleData, setEthCandleData] = useState([]);
-  const [ethData, setEthData] = useState([]);
-  const [maticData, setMaticData] = useState([]);
+  const [tokenData, setTokenData] = useState({ tokenPrice: "", tokenDate: "" });
+  const [checkingDate, setCheckingDate] = useState(0);
 
-  const ethMaticData = () => {
-    axios
-      .get("https://api.coingecko.com/api/v3/coins/ethereum/market_chart?vs_currency=usd&days=max")
-      .then(function (response) {
-        // handle success
-        console.log(response.data);
-        setEthData(response.data.prices);
-      });
-    axios
-      .get("https://api.coingecko.com/api/v3/coins/matic-network/market_chart?vs_currency=usd&days=max")
-      .then(function (response) {
-        // handle success
-        console.log(response.data);
-        setMaticData(response.data.prices);
-      });
-  };
-  const ethereumCandleData = () => {
-    axios
-      .get("https://api.coingecko.com/api/v3/coins/ethereum/ohlc?vs_currency=usd&days=max")
-      .then(function (response) {
-        // handle success
-        console.log(response.data);
+  const tokenList = ["Eth"];
+  const tokenDataList = tokenList.map(name => ({
+    name: name,
+    data: [],
+  }));
+  const returnList = ["Eth"];
+  const returnDataList = returnList.map(name => ({
+    name: name,
+    data: [],
+  }));
 
-        setEthCandleData(response.data);
-      });
-  };
+  const [returnsDataSet, setReturnsDataSet] = useState(returnDataList);
+  const [tokenDataSet, setTokenDataSet] = useState(tokenDataList);
+
   useEffect(() => {
-    ethereumCandleData();
-    ethMaticData();
-  }, []);
+    const addReturnRandomly = data => {
+      if (Math.random() < 1 - 0.8) {
+        return data;
+      }
+      return [
+        ...data,
+        {
+          x: new Date(),
+          y: data.length * Math.random(),
+        },
+      ];
+    };
+    const intervals = setInterval(() => {
+      setReturnsDataSet(
+        returnsDataSet.map(val => {
+          return {
+            name: val.name,
+            data: addReturnRandomly(val.data),
+          };
+        }),
+      );
+    }, 1000);
 
-  let max = new Date().getTime(); // Current timestamp
-  let min = new Date("2021-08-1").getTime(); // timestamp 90 days before
+    return () => clearInterval(intervals);
+  });
+  useEffect(() => {
+    const addTokenDataRandomly = data => {
+      fetch("http://localhost:5000/", { crossdomain: true })
+        .then(response => {
+          return response.json();
+        })
+        .then(res => {
+          // console.log(res.data[1].quote.USD.price);
+          let currentPrice = res.data[1].quote.USD.price;
+          let dateUpdated = res.data[1].quote.USD.last_updated;
+          let timeUpdated = new Date(dateUpdated).getTime();
 
-  let range = max - min;
-  const apexSeries = [{ data: EthCandleData }];
-  const apexOption = {
-    chart: {
-      fontFamily: "PressStart2P",
-      fontWeight: "400",
-      fontSize: "5px",
-      // color: "#111",
-      color: "#fff",
-      type: "candlestick",
-      height: 390,
-      events: {
-        // beforeZoom: function(chartContext, { xaxis }) {
-        //   return {
-        //     xaxis: {
-        //       min: timestamp,
-        //       max: timestamp
-        //     }
-        //   }
-        beforeZoom: function (ctx) {
-          ctx.w.config.xaxis.range = undefined;
-        },
-      },
-    },
-    title: {
-      text: "Eth CandleStick Chart",
-      align: "left",
-      margin: 20,
-      style: {
-        fontSize: "10px",
-        fontWeight: "400",
-        fontFamily: "PressStart2P",
-        // color: "#111",
-        color: "#fff",
-      },
-    },
-    xaxis: {
-      type: "datetime",
-      range: range,
-      labels: {
-        style: {
-          fontSize: "8px",
-          colors: "#fff",
-        },
-      },
-      tooltip: {
-        style: {
-          fontSize: "8px",
-        },
-      },
-    },
-    yaxis: {
-      decimalsInFloat: 0,
-      // tickAmount: 10,
-      labels: {
-        style: {
-          fontSize: "8px",
-          colors: "#fff",
-        },
-      },
-    },
-    noData: {
-      text: "Please Wait! We are fetching data...",
-    },
-    responsive: [
-      {
-        breakpoint: 1200,
-        options: {
-          chart: {
-            height: 290,
+          setTokenData({ tokenDate: timeUpdated, tokenPrice: currentPrice });
+          console.log(currentPrice, timeUpdated);
+        });
+      if (tokenData.tokenDate === checkingDate) {
+        return data;
+      } else {
+        setCheckingDate(tokenData.tokenDate);
+        return [
+          ...data,
+          {
+            x: tokenData.tokenDate,
+            y: tokenData.tokenPrice,
           },
-        },
-      },
-    ],
-  };
+        ];
+      }
+    };
+    const interval = setInterval(() => {
+      setTokenDataSet(
+        tokenDataSet.map(val => {
+          return {
+            name: val.name,
+            data: addTokenDataRandomly(val.data),
+          };
+        }),
+      );
+      console.log(tokenDataSet);
+    }, 3000);
 
-  const series = [
-    {
-      name: "Eth",
-      data: ethData,
-    },
-    {
-      name: "Matic",
-      data: maticData,
-    },
-  ];
+    return () => clearInterval(interval);
+  });
+
+  // const ethData = async () => {
+  //   axios
+  //     .get("https://api.coingecko.com/api/v3/coins/ethereum/market_chart?vs_currency=usd&days=max")
+  //     .then(function (response) {
+  //       // handle success
+  //       console.log(response.data);
+  //       // newDataArray.push(response.data.prices);
+  //       // console.log(newDataArray);
+  //       setEthData(response.data.prices);
+  //     });
+  // };
+
   const options = {
     chart: {
+      color: "#fff",
       fontFamily: "PressStart2P",
       fontWeight: "400",
-      fontSize: "5x",
-      // color: "#111",
-      foreColor: "#fff",
+      fontSize: "8px",
       width: "100%",
       height: 400,
-      type: "area",
-      events: {
-        // beforeZoom: function(chartContext, { xaxis }) {
-        //   return {
-        //     xaxis: {
-        //       min: timestamp,
-        //       max: timestamp
-        //     }
-        //   }
-        beforeZoom: function (ctx) {
-          ctx.w.config.xaxis.range = undefined;
-        },
+      zoom: {
+        enabled: false,
       },
-    },
-    title: {
-      text: "Eth-Matic Chart",
-      align: "left",
-      margin: 20,
-      style: {
-        fontSize: "10px",
-        fontWeight: "400",
-        fontFamily: "PressStart2P",
-        // color: "#111",
-        color: "#fff",
+      toolbar: {
+        show: false,
+      },
+      animations: {
+        easing: "linear",
+        dynamicAnimation: {
+          speed: 500,
+        },
       },
     },
     tooltip: {
       style: {
         fontSize: "8px",
       },
+      x: {
+        format: "yyyy/MM/dd HH:mm:ss.f",
+      },
     },
     legend: {
-      fontSize: "11px",
+      fontSize: "8px",
       labels: {
         colors: "#fff",
       },
     },
-    dataLabels: {
-      enabled: false,
-    },
     stroke: {
       curve: "smooth",
     },
+    dataLabels: {
+      enabled: false,
+    },
     noData: {
       text: "Please Wait! We are fetching data...",
-    },
-    yaxis: {
-      decimalsInFloat: 0,
-      tickAmount: 10,
-      labels: {
-        style: {
-          fontSize: "8px",
-          colors: "#fff",
-        },
+      style: {
+        color: "#fff",
+        fontSize: "10px",
       },
     },
     xaxis: {
       type: "datetime",
-      format: "MM/yy ",
-      range: range,
+      range: 30 * 1000,
       labels: {
         style: {
           fontSize: "8px",
@@ -210,16 +165,55 @@ function Farming({ block }) {
         },
       },
     },
-    responsive: [
-      {
-        breakpoint: 1200,
-        options: {
-          chart: {
-            height: 300,
-          },
+    yaxis: {
+      decimalsInFloat: 0,
+      labels: {
+        formatter: val => val.toFixed(0),
+        style: {
+          fontSize: "8px",
+          colors: "#fff",
         },
       },
-    ],
+    },
+    // responsive: [
+    //   {
+    //     breakpoint: 1200,
+    //     options: {
+    //       chart: {
+    //         height: 300,
+    //       },
+    //     },
+    //   },
+    // ],
+  };
+
+  const returnsOptions = {
+    title: {
+      text: "Returns",
+      align: "left",
+      margin: 20,
+      style: {
+        fontSize: "11px",
+        fontWeight: "400",
+        fontFamily: "PressStart2P",
+        color: "#fff",
+      },
+    },
+    ...options,
+  };
+  const tokensOptions = {
+    title: {
+      text: "Token Price",
+      align: "left",
+      margin: 20,
+      style: {
+        fontSize: "11px",
+        fontWeight: "400",
+        fontFamily: "PressStart2P",
+        color: "#fff",
+      },
+    },
+    ...options,
   };
 
   return (
@@ -227,10 +221,10 @@ function Farming({ block }) {
       <Box p="2rem" align="center">
         <Flex mb="1rem" justifyContent="space-around">
           <Box w="45vw" className="box box-2">
-            <ReactApexChart options={options} series={series} type="area" />
+            <Chart options={tokensOptions} series={tokenDataSet} type="line" />
           </Box>
           <Box w="45vw" className="box box-2">
-            <ReactApexChart options={apexOption} type="candlestick" series={apexSeries} />
+            <Chart options={returnsOptions} series={returnsDataSet} type="area" />
           </Box>
         </Flex>
         <Flex alignItems="center" justifyContent="space-around" m={1} w="93vw" h="auto" className="box">
@@ -302,15 +296,6 @@ function Farming({ block }) {
               </Text>
             </Box>
           </Flex>
-          {/* <Button
-            fontFamily="Raleway"
-            _hover={{
-              transform: "translateY(-2px)",
-              boxShadow: "lg",
-            }}
-          >
-            Auto Compounding
-          </Button> */}
         </Flex>
         <Flex justifyContent="space-around" mt="1rem" w="93vw" className="box">
           <Button
