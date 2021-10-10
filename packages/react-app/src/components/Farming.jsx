@@ -46,12 +46,13 @@ function Farming({ block }) {
     return () => clearInterval(intervals);
   });
   useEffect(() => {
-
+    const initialInvestment = 1000;
     const mGen = modelFarm(1, 1,'lp', 1000, 'token1', 'token2');
     const addTokenDataRandomly = data => {
 
         let nextPrice = mGen.next().value;
         if(nextPrice) {
+          let priceReturns = (nextPrice.total_value.minus(initialInvestment)).div(initialInvestment);
           return [
             ...data,
             {

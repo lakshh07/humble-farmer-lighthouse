@@ -109,11 +109,26 @@ function* generateReturns(gT1P, gT2P, gFees, gLPs, initParams, strategy) {
         }
         poolParams.hold_value = hodlValue(nT1P.value, nT2P.value, T1Q, T2Q);
         poolParams.total_value = res.totalVal;
+        poolParams.reward_tokens = totalRewardTokens;
         yield poolParams;
     }
 }
 
 
+/** 
+ * {
+ * {
+        T1Q,
+        T2Q,
+        T1P,
+        T2P,
+        hold_value, 
+        total_value,
+        reward_tokens,
+        klast: newKlast
+    }
+ * }
+*/
 function* modelFarm(feeBasePercent, lpFeesPercent, lpToken, initialCapital, poolToken1, poolToken2) {
     let lpTokenPrices = getTokenPriceSeries(lpToken);
     let token1Prices = getTokenPriceSeries(poolToken1);
