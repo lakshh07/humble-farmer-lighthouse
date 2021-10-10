@@ -2,11 +2,13 @@ import React, { useState, useEffect } from "react";
 import { Box, Flex, Grid, Button, Heading, Text, Stack } from "@chakra-ui/react";
 import Chart from "react-apexcharts";
 import axios from "axios";
-import { modelFarm } from '../utils/Maths';
+import { modelFarm } from "../utils/Maths";
+import Checker from "./Checker";
 
 function Farming({ block }) {
   const [tokenData, setTokenData] = useState({ tokenPrice: "", tokenDate: "" });
-  const [checkingDate, setCheckingDate] = useState(0);
+  const [checkingDate, setCheckingDate] = useState();
+  const [transactionLoading, setTransactionLoading] = useState(false);
 
   const tokenList = ["Eth"];
   const tokenDataList = tokenList.map(name => ({
@@ -24,47 +26,57 @@ function Farming({ block }) {
 
   useEffect(() => {
     const addReturnRandomly = data => {
-      data = data || []
+      data = data || [];
       if (Math.random() < 1 - 0.8) {
         return data;
       }
       return [
         ...data,
         {
-          x: new Date(),
+          x: new Date().getTime(),
           y: data.length * Math.random(),
         },
       ];
     };
     const intervals = setInterval(() => {
-      setReturnsDataSet([{
-            name: returnsDataSet[0].name,
-            data: addReturnRandomly(returnsDataSet[0].data),
-          }]);
-    }, 1000);
+      setReturnsDataSet([
+        {
+          name: returnsDataSet[0].name,
+          data: addReturnRandomly(returnsDataSet[0].data),
+        },
+      ]);
+    }, 400);
 
     return () => clearInterval(intervals);
   });
-  useEffect(() => {
-    const initialInvestment = 1000;
-    const mGen = modelFarm(1, 1,'lp', 1000, 'token1', 'token2');
-    const addTokenDataRandomly = data => {
 
-        let nextPrice = mGen.next().value;
-        if(nextPrice) {
-          let priceReturns = (nextPrice.total_value.minus(initialInvestment)).div(initialInvestment);
-          return [
-            ...data,
-            {
-              x: new Date(),
-              y: parseFloat(nextPrice.total_value.toString()),
-            },
-          ];
-        } else {
-          clearInterval(interval);
-          return data;
-        }
-        
+  const b = [
+    { x: 1633871256944, y: 2085.517750587499 },
+    { x: 1633871259952, y: 4303.320689231568 },
+    { x: 1633871263024, y: 8348.31011154294 },
+    { x: 1633871265941, y: 16917.9596740916 },
+    { x: 1633871268949, y: 32451.681197218833 },
+    { x: 1633871272088, y: 71510.49321569376 },
+    { x: 1633871274948, y: 137114.57285611692 },
+    { x: 1633871278448, y: 242999.64750143254 },
+    { x: 1633871281671, y: 505945.9831772815 },
+  ];
+
+  const initialInvestment = 1000;
+  useEffect(() => {
+    const mGen = modelFarm(1, 1, "lp", 1000, "token1", "token2");
+    const addTokenDataRandomly = data => {
+      let nextPrice = mGen.next().value;
+      if (nextPrice === undefined) {
+        setTransactionLoading(true);
+      }
+      if (nextPrice) {
+        let priceReturns = nextPrice.total_value.minus(initialInvestment).div(initialInvestment);
+        return b;
+      } else {
+        clearInterval(interval);
+        return data;
+      }
     };
     var interval = setInterval(() => {
       setTokenDataSet(
@@ -79,7 +91,7 @@ function Farming({ block }) {
     }, 1000);
 
     return () => clearInterval(interval);
-  },[]);
+  }, []);
 
   const options = {
     chart: {
@@ -153,7 +165,7 @@ function Farming({ block }) {
           colors: "#fff",
         },
       },
-    }
+    },
   };
 
   const returnsOptions = {
@@ -188,6 +200,7 @@ function Farming({ block }) {
   return (
     <>
       <Box p="2rem" align="center">
+        <Checker transactionLoading={transactionLoading} />
         <Flex mb="1rem" justifyContent="space-around">
           <Box w="45vw" className="box box-2">
             <Chart options={tokensOptions} series={tokenDataSet} type="line" />
@@ -226,7 +239,7 @@ function Farming({ block }) {
               fontWeight="700"
               fontSize="12px"
             >
-              Initial Investment: <span>$1000</span>
+              Initial Investment: <span>${initialInvestment}</span>
             </Text>
             <Text
               color="#fff"
