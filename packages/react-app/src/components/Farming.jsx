@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Box, Flex, Grid, Button, Heading, Text, Stack } from "@chakra-ui/react";
 import Chart from "react-apexcharts";
 import axios from "axios";
+import { modelFarm } from '../utils/Maths';
 
 function Farming({ block }) {
   const [tokenData, setTokenData] = useState({ tokenPrice: "", tokenDate: "" });
@@ -23,6 +24,7 @@ function Farming({ block }) {
 
   useEffect(() => {
     const addReturnRandomly = data => {
+      data = data || []
       if (Math.random() < 1 - 0.8) {
         return data;
       }
@@ -35,47 +37,35 @@ function Farming({ block }) {
       ];
     };
     const intervals = setInterval(() => {
-      setReturnsDataSet(
-        returnsDataSet.map(val => {
-          return {
-            name: val.name,
-            data: addReturnRandomly(val.data),
-          };
-        }),
-      );
+      setReturnsDataSet([{
+            name: returnsDataSet[0].name,
+            data: addReturnRandomly(returnsDataSet[0].data),
+          }]);
     }, 1000);
 
     return () => clearInterval(intervals);
   });
   useEffect(() => {
-    const addTokenDataRandomly = data => {
-      fetch("http://localhost:5000/", { crossdomain: true })
-        .then(response => {
-          return response.json();
-        })
-        .then(res => {
-          // console.log(res.data[1].quote.USD.price);
-          let currentPrice = res.data[1].quote.USD.price;
-          let dateUpdated = res.data[1].quote.USD.last_updated;
-          let timeUpdated = new Date(dateUpdated).getTime();
 
-          setTokenData({ tokenDate: timeUpdated, tokenPrice: currentPrice });
-          console.log(currentPrice, timeUpdated);
-        });
-      if (tokenData.tokenDate === checkingDate) {
-        return data;
-      } else {
-        setCheckingDate(tokenData.tokenDate);
-        return [
-          ...data,
-          {
-            x: tokenData.tokenDate,
-            y: tokenData.tokenPrice,
-          },
-        ];
-      }
+    const mGen = modelFarm(1, 1,'lp', 1000, 'token1', 'token2');
+    const addTokenDataRandomly = data => {
+
+        let nextPrice = mGen.next().value;
+        if(nextPrice) {
+          return [
+            ...data,
+            {
+              x: new Date(),
+              y: parseFloat(nextPrice.total_value.toString()),
+            },
+          ];
+        } else {
+          clearInterval(interval);
+          return data;
+        }
+        
     };
-    const interval = setInterval(() => {
+    var interval = setInterval(() => {
       setTokenDataSet(
         tokenDataSet.map(val => {
           return {
@@ -85,22 +75,10 @@ function Farming({ block }) {
         }),
       );
       console.log(tokenDataSet);
-    }, 3000);
+    }, 1000);
 
     return () => clearInterval(interval);
-  });
-
-  // const ethData = async () => {
-  //   axios
-  //     .get("https://api.coingecko.com/api/v3/coins/ethereum/market_chart?vs_currency=usd&days=max")
-  //     .then(function (response) {
-  //       // handle success
-  //       console.log(response.data);
-  //       // newDataArray.push(response.data.prices);
-  //       // console.log(newDataArray);
-  //       setEthData(response.data.prices);
-  //     });
-  // };
+  },[]);
 
   const options = {
     chart: {
@@ -174,17 +152,7 @@ function Farming({ block }) {
           colors: "#fff",
         },
       },
-    },
-    // responsive: [
-    //   {
-    //     breakpoint: 1200,
-    //     options: {
-    //       chart: {
-    //         height: 300,
-    //       },
-    //     },
-    //   },
-    // ],
+    }
   };
 
   const returnsOptions = {

@@ -460,6 +460,17 @@ function App(props) {
             <Route exact path="/farming">
               <Farming block={mainnetProvider._lastBlockNumber} />
             </Route>
+            <Route exact path="/contract">
+              <Contract
+                name="HumbleFarmer"
+                signer={userSigner}
+                faucetHint={faucetAvailable ? faucetHint : null}
+                provider={localProvider}
+                address={address}
+                blockExplorer={blockExplorer}
+                contractConfig={contractConfig}
+              />
+            </Route>
           </div>
         </Switch>
       </BrowserRouter>

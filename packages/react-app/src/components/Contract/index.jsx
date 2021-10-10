@@ -54,7 +54,8 @@ export default function Contract({
   price,
   blockExplorer,
   chainId,
-  contractConfig
+  contractConfig,
+  faucetHint
 }) {
   const contracts = useContractLoader(provider, contractConfig, chainId);
   let contract;
@@ -134,6 +135,7 @@ export default function Contract({
                 blockExplorer={blockExplorer}
               />
               {account}
+              {faucetHint}
             </div>
           </div>
         }
